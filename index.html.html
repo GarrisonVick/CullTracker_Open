@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cull Tracker">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Cull Tracker">
+<meta name="theme-color" content="#0a1628">
+<meta name="description" content="Bass tournament cull tag weight tracker">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAAokXfRAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNui8sowAAAFpSURBVHic7cExAQAAAMKg9U9tCy+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeAMBuAABHgAAAABJRU5ErkJggg==">
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Cull+Tracker%22,%22short_name%22:%22Cull%22,%22display%22:%22standalone%22,%22background_color%22:%22%230a1628%22,%22theme_color%22:%22%230a1628%22,%22orientation%22:%22portrait%22,%22start_url%22:%22.%22}">
+<title>Cull Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a1628; --surface: #111e35; --surface2: #172540; --surface3: #0d1a2e;
+  --border: #1e3254; --accent: #00c2ff; --accent2: #00ff99;
+  --text: #e8f0fe; --muted: #6b89b4; --danger: #ff4d6d; --warn: #ffb800;
+  --font-display: 'Bebas Neue', sans-serif; --font-body: 'Barlow', sans-serif;
+}
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+body { display: flex; flex-direction: column; min-height: 100dvh; background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,194,255,0.1) 0%, transparent 70%), radial-gradient(ellipse 60% 30% at 80% 110%, rgba(0,255,153,0.06) 0%, transparent 60%); }
+
+/* SUNLIGHT MODE */
+body.sun { --bg: #f0f4f8; --surface: #ffffff; --surface2: #e8edf3; --surface3: #dde3ec; --border: #c5cedd; --text: #0a1628; --muted: #4a6080; --accent: #0077aa; --accent2: #007a44; background-image: none; background-color: var(--bg); }
+
+/* HEADER */
+header { padding: 14px 16px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(10,22,40,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
+body.sun header { background: rgba(240,244,248,0.95); }
+.logo { display: flex; align-items: baseline; gap: 7px; }
+.logo-title { font-family: var(--font-display); font-size: 26px; letter-spacing: 2px; color: var(--accent); line-height: 1; }
+.logo-sub { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+.header-btns { display: flex; gap: 6px; }
+.btn-hdr { background: none; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.btn-hdr:active { background: var(--surface); color: var(--text); }
+.btn-hdr.icon-btn { padding: 5px 8px; font-size: 16px; letter-spacing: 0; }
+
+/* TIMER */
+.timer-bar { background: var(--surface3); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.timer-left { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.timer-display { font-family: var(--font-display); font-size: 32px; letter-spacing: 3px; color: var(--accent); line-height: 1; }
+.timer-display.warn { color: var(--warn); }
+.timer-display.danger { color: var(--danger); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.timer-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+.timer-weigh { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 1px; }
+.timer-weigh span { color: var(--text); }
+.timer-right { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-timer { background: none; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+.btn-timer.active { border-color: var(--accent2); color: var(--accent2); }
+.btn-timer:active { background: var(--surface); }
+/* ALARM MODAL */
+.alarm-time-picker { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 14px; }
+.alarm-time-input { background: none; border: none; color: var(--accent); font-family: var(--font-display); font-size: 56px; letter-spacing: 4px; text-align: center; outline: none; width: 100%; -webkit-appearance: none; }
+.alarm-time-input::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.4); cursor: pointer; transform: scale(1.4); }
+body.sun .alarm-time-input { color: var(--accent); }
+body.sun .alarm-time-input::-webkit-calendar-picker-indicator { filter: none; opacity: 0.5; }
+.alarm-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.preset-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: var(--font-body); font-size: 13px; font-weight: 600; padding: 10px 6px; cursor: pointer; text-align: center; }
+.preset-btn:active { background: var(--surface2); color: var(--text); }
+.preset-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; display: block; margin-top: 2px; }
+.alarm-status { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 12px; min-height: 18px; }
+.alarm-status .hi { color: var(--accent2); font-weight: 600; }
+
+/* SCOREBOARD */
+.scoreboard { padding: 12px 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.score-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.score-label { font-size: 9px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 3px; }
+.score-value { font-family: var(--font-display); font-size: 22px; color: var(--text); letter-spacing: 1px; line-height: 1; }
+.score-value.accent { color: var(--accent); }
+.score-value.green { color: var(--accent2); }
+.score-value.gold { color: var(--warn); }
+
+.section-label { padding: 0 16px 7px; font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+
+/* TAG GRID */
+.tag-grid { padding: 0 14px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+.tag-row { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: stretch; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+.tag-row.has-fish { border-color: var(--tag-color, var(--accent)); box-shadow: 0 0 0 1px var(--tag-color, var(--accent)), inset 0 0 20px rgba(0,0,0,0.25); }
+.tag-swatch { width: 54px; min-width: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; position: relative; padding: 10px 0; }
+.tag-swatch::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.08); }
+.tag-icon { font-size: 17px; line-height: 1; }
+.tag-name-label { font-size: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.5); text-align: center; padding: 0 3px; }
+.tag-content { flex: 1; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.weight-display { flex: 1; min-width: 0; }
+.weight-label { font-size: 9px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 1px; }
+.weight-value { font-family: var(--font-display); font-size: 28px; letter-spacing: 1px; color: var(--text); line-height: 1; white-space: nowrap; }
+.weight-value.empty { color: var(--border); }
+.weight-unit { font-size: 13px; color: var(--muted); font-family: var(--font-body); font-weight: 600; }
+.dead-badge { display: inline-block; background: var(--danger); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 5px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
+.tag-actions { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
+.btn-enter { background: var(--accent); color: #000; border: none; border-radius: 8px; font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 10px 16px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; min-width: 70px; text-align: center; }
+.btn-enter:active { opacity: 0.8; transform: scale(0.96); }
+.btn-sm-row { display: flex; gap: 5px; }
+.btn-sm { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 4px; cursor: pointer; text-align: center; white-space: nowrap; }
+.btn-sm:active { background: var(--surface2); color: var(--text); }
+.btn-sm.dead-on { border-color: var(--danger); color: var(--danger); }
+.btn-sm.dead-on:active { background: var(--danger); color: #fff; }
+
+/* BIG FISH ALERT */
+.bigfish-alert { position: fixed; top: 0; left: 0; right: 0; z-index: 500; background: linear-gradient(135deg, #d4a017, #ff8c00); color: #000; text-align: center; padding: 14px 20px; font-family: var(--font-display); font-size: 22px; letter-spacing: 3px; transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.bigfish-alert.show { transform: translateY(0); }
+
+/* CULL TIP */
+.cull-tip { margin: 10px 14px 0; padding: 10px 14px; background: rgba(0,194,255,0.06); border: 1px solid rgba(0,194,255,0.15); border-radius: 8px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.cull-tip strong { color: var(--accent); font-weight: 600; }
+
+/* CULL LOG */
+.log-section { margin: 10px 14px 0; }
+.log-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
+.log-list { display: flex; flex-direction: column; gap: 5px; }
+.log-entry { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.log-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.log-text { flex: 1; }
+.log-gain { color: var(--accent2); font-weight: 700; margin-left: 4px; }
+.log-time { font-size: 10px; color: var(--border); margin-left: auto; flex-shrink: 0; }
+
+/* SHARE CARD */
+.share-section { margin: 10px 14px 0; }
+.btn-share { width: 100%; background: none; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-body); font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 12px; border-radius: 10px; cursor: pointer; }
+.btn-share:active { background: var(--surface); color: var(--text); }
+
+/* INSTALL */
+.install-banner { margin: 10px 14px 0; padding: 11px 13px; background: rgba(0,255,153,0.05); border: 1px solid rgba(0,255,153,0.18); border-radius: 10px; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.install-banner .icon { font-size: 18px; flex-shrink: 0; }
+.install-banner strong { color: var(--accent2); display: block; margin-bottom: 1px; font-weight: 600; }
+
+footer { padding: 14px 16px; text-align: center; font-size: 10px; color: var(--border); letter-spacing: 1px; }
+
+/* MODALS */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 200; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.sheet { width: 100%; background: var(--surface2); border-top: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 20px 18px 38px; transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); max-height: 92dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.modal-overlay.open .sheet { transform: translateY(0); }
+.sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.sheet-title { font-family: var(--font-display); font-size: 22px; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+.sheet-swatch { width: 22px; height: 22px; border-radius: 4px; display: inline-block; flex-shrink: 0; }
+.modal-close { background: none; border: 1px solid var(--border); color: var(--muted); width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* NUMPAD */
+.numpad-display { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; text-align: right; font-family: var(--font-display); font-size: 38px; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px; min-height: 64px; line-height: 1; display: flex; align-items: center; justify-content: flex-end; }
+.numpad-display .placeholder { color: var(--border); font-size: 26px; }
+.numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.numpad-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-display); font-size: 26px; letter-spacing: 1px; padding: 15px 8px; cursor: pointer; transition: background 0.1s, transform 0.08s; text-align: center; user-select: none; -webkit-user-select: none; }
+.numpad-btn:active { background: var(--surface2); transform: scale(0.94); }
+.numpad-btn.action { background: var(--surface2); color: var(--muted); font-size: 17px; font-family: var(--font-body); font-weight: 700; }
+.numpad-btn.confirm { background: var(--accent); color: #000; border-color: var(--accent); font-family: var(--font-body); font-weight: 700; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; }
+.numpad-btn.confirm:active { background: #009fcf; }
+.dead-toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; }
+.dead-toggle-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.dead-toggle-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.toggle-pill { width: 46px; height: 26px; border-radius: 13px; background: var(--border); position: relative; transition: background 0.2s; flex-shrink: 0; }
+.toggle-pill.on { background: var(--danger); }
+.toggle-pill::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+.toggle-pill.on::after { transform: translateX(20px); }
+
+/* SETTINGS */
+.tag-edit-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 13px; margin-bottom: 9px; display: flex; align-items: center; gap: 11px; }
+.color-preview { width: 48px; height: 48px; min-width: 48px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.2); position: relative; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.color-preview input[type=color] { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); opacity: 0; cursor: pointer; }
+.tag-name-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 15px; font-weight: 600; padding: 11px 12px; outline: none; -webkit-appearance: none; }
+.tag-name-input:focus { border-color: var(--accent); }
+.settings-hint { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; }
+.btn-save { width: 100%; margin-top: 14px; background: var(--accent); color: #000; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 700; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; padding: 14px; cursor: pointer; }
+.btn-save:active { background: #009fcf; }
+
+/* TIMER MODAL */
+.timer-set-group { margin-bottom: 14px; }
+.timer-set-label { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.time-inputs { display: flex; gap: 8px; align-items: center; }
+.time-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font-display); font-size: 28px; letter-spacing: 2px; padding: 10px 12px; outline: none; text-align: center; -webkit-appearance: none; }
+.time-input:focus { border-color: var(--accent); }
+.time-sep { font-family: var(--font-display); font-size: 28px; color: var(--muted); }
+.btn-start-timer { width: 100%; margin-top: 10px; background: var(--accent2); color: #000; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 700; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; padding: 14px; cursor: pointer; }
+.btn-start-timer:active { opacity: 0.85; }
+.btn-stop-timer { width: 100%; margin-top: 10px; background: none; border: 1px solid var(--danger); color: var(--danger); border-radius: 10px; font-family: var(--font-body); font-weight: 700; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; padding: 14px; cursor: pointer; }
+
+@keyframes ripple { 0% { box-shadow: 0 0 0 0 var(--tag-color); } 100% { box-shadow: 0 0 0 14px transparent; } }
+.tag-row.ripple { animation: ripple 0.45s ease-out; }
+@keyframes bigpulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+.tag-row.bigfish { animation: bigpulse 0.4s ease-out 2; }
+</style>
+</head>
+<body>
+
+<div class="bigfish-alert" id="bigfish-alert">🏆 NEW BIG FISH!</div>
+
+<header>
+  <div class="logo">
+    <span class="logo-title">CULL TRACKER</span>
+    <span class="logo-sub">Tournament</span>
+  </div>
+  <div class="header-btns">
+    <button class="btn-hdr icon-btn" onclick="toggleSun()" title="Sunlight mode" id="sun-btn">☀️</button>
+    <button class="btn-hdr icon-btn" onclick="openTimerModal()" title="Timer">⏱️</button>
+    <button class="btn-hdr icon-btn" onclick="openSettings()" title="Edit tags">⚙️</button>
+    <button class="btn-hdr" onclick="resetAll()">Reset</button>
+  </div>
+</header>
+
+<div class="timer-bar" id="timer-bar">
+  <div class="timer-left">
+    <div>
+      <div class="timer-label">Time Remaining</div>
+      <div class="timer-display" id="timer-display">--:--</div>
+    </div>
+    <div class="timer-weigh" id="weigh-in-label" style="display:none">Weigh-in <span id="weigh-in-time">—</span></div>
+  </div>
+  <div class="timer-right">
+    <button class="btn-timer" onclick="openTimerModal()">Set Alarm</button>
+    <button class="btn-timer" id="btn-clear-alarm" onclick="clearAlarm()" style="display:none">Clear</button>
+  </div>
+</div>
+
+<div class="scoreboard">
+  <div class="score-card"><div class="score-label">Fish</div><div class="score-value accent" id="fish-count">0</div></div>
+  <div class="score-card"><div class="score-label">Limit</div><div class="score-value green" id="limit-weight">—</div></div>
+  <div class="score-card"><div class="score-label">Total</div><div class="score-value" id="total-weight">0.00</div></div>
+  <div class="score-card"><div class="score-label">Big Fish</div><div class="score-value gold" id="big-fish">—</div></div>
+</div>
+
+<div class="section-label">CULL TAGS</div>
+<div class="tag-grid" id="tag-grid"></div>
+
+<div class="cull-tip" id="cull-tip" style="display:none"><strong id="cull-tip-text"></strong></div>
+
+<div class="log-section" id="log-section" style="display:none">
+  <div class="log-title">Cull History</div>
+  <div class="log-list" id="log-list"></div>
+</div>
+
+<div class="share-section">
+  <button class="btn-share" onclick="shareResults()">📋 Copy Results Summary</button>
+</div>
+
+<div class="install-banner" id="static-install-banner">
+  <span class="icon">📲</span>
+  <div><strong>Install on your iPhone</strong>Open in Safari → tap Share ⎋ → "Add to Home Screen"</div>
+</div>
+
+<footer>CULL TRACKER &bull; BASS TOURNAMENT EDITION</footer>
+
+<!-- WEIGHT NUMPAD MODAL -->
+<div class="modal-overlay" id="modal-weight" onclick="if(event.target===this)closeWeightModal()">
+  <div class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title"><span class="sheet-swatch" id="modal-swatch"></span><span id="modal-tag-name">TAG</span></div>
+      <button class="modal-close" onclick="closeWeightModal()">✕</button>
+    </div>
+    <div class="dead-toggle-row" onclick="toggleDeadInModal()" id="dead-toggle-row">
+      <div>
+        <div class="dead-toggle-label">Dead Fish</div>
+        <div class="dead-toggle-sub">−0.25 lb penalty applied</div>
+      </div>
+      <div class="toggle-pill" id="dead-toggle-pill"></div>
+    </div>
+    <div class="numpad-display" id="numpad-display"><span class="placeholder">0.00 lbs</span></div>
+    <div class="numpad-grid">
+      <button class="numpad-btn" onclick="numInput('1')">1</button>
+      <button class="numpad-btn" onclick="numInput('2')">2</button>
+      <button class="numpad-btn" onclick="numInput('3')">3</button>
+      <button class="numpad-btn" onclick="numInput('4')">4</button>
+      <button class="numpad-btn" onclick="numInput('5')">5</button>
+      <button class="numpad-btn" onclick="numInput('6')">6</button>
+      <button class="numpad-btn" onclick="numInput('7')">7</button>
+      <button class="numpad-btn" onclick="numInput('8')">8</button>
+      <button class="numpad-btn" onclick="numInput('9')">9</button>
+      <button class="numpad-btn action" onclick="numInput('.')">.</button>
+      <button class="numpad-btn" onclick="numInput('0')">0</button>
+      <button class="numpad-btn action" onclick="numBackspace()">⌫</button>
+      <button class="numpad-btn confirm" style="grid-column:span 3" onclick="confirmWeight()">SET WEIGHT</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="modal-settings" onclick="if(event.target===this)closeSettings()">
+  <div class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">Edit Tags</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div id="settings-list"></div>
+    <button class="btn-save" onclick="saveSettings()">Save Tags</button>
+    <div class="settings-hint">Tap the colored square to pick any color</div>
+  </div>
+</div>
+
+<!-- TIMER / ALARM MODAL -->
+<div class="modal-overlay" id="modal-timer" onclick="if(event.target===this)closeTimerModal()">
+  <div class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">Weigh-In Alarm</div>
+      <button class="modal-close" onclick="closeTimerModal()">✕</button>
+    </div>
+    <div class="alarm-time-picker">
+      <input class="alarm-time-input" type="time" id="alarm-time-input" value="14:00">
+    </div>
+    <div class="alarm-presets" id="alarm-presets"></div>
+    <div class="alarm-status" id="alarm-status"></div>
+    <button class="btn-start-timer" onclick="setAlarm()">Set Weigh-In Alarm</button>
+    <button class="btn-stop-timer" onclick="clearAlarm()">Clear Alarm</button>
+  </div>
+</div>
+
+<script>
+const DEFAULT_TAGS = [
+  { id:'tag1', name:'Red',    color:'#e03535' },
+  { id:'tag2', name:'Blue',   color:'#1a6fd4' },
+  { id:'tag3', name:'Yellow', color:'#d4a017' },
+  { id:'tag4', name:'Green',  color:'#1a8c4e' },
+  { id:'tag5', name:'Orange', color:'#d46b17' },
+];
+const LIMIT = 5;
+const DEAD_PENALTY = 0.25;
+
+let tags = [];
+let weights = {};    // { tagId: number }
+let deadFlags = {};  // { tagId: bool }
+let cullLog = [];    // [ { tagId, oldW, newW, time } ]
+let activeTag = null;
+let numBuffer = '';
+let modalDead = false;
+let bigFishRecord = 0;
+let sunMode = false;
+
+// Timer state
+let timerEnd = null;
+let timerInterval = null;
+
+/* ─── PERSIST ─── */
+function saveAll() {
+  try {
+    localStorage.setItem('ct_tags', JSON.stringify(tags));
+    localStorage.setItem('ct_weights', JSON.stringify(weights));
+    localStorage.setItem('ct_dead', JSON.stringify(deadFlags));
+    localStorage.setItem('ct_log', JSON.stringify(cullLog));
+    localStorage.setItem('ct_bigfish', bigFishRecord);
+    localStorage.setItem('ct_sun', sunMode ? '1' : '0');
+    if (timerEnd) localStorage.setItem('ct_timerEnd', timerEnd);
+    else localStorage.removeItem('ct_timerEnd');
+  } catch(e) {}
+}
+function loadAll() {
+  try {
+    const t = localStorage.getItem('ct_tags');
+    const w = localStorage.getItem('ct_weights');
+    const d = localStorage.getItem('ct_dead');
+    const l = localStorage.getItem('ct_log');
+    const b = localStorage.getItem('ct_bigfish');
+    const s = localStorage.getItem('ct_sun');
+    const te = localStorage.getItem('ct_timerEnd');
+    tags       = t  ? JSON.parse(t)  : JSON.parse(JSON.stringify(DEFAULT_TAGS));
+    weights    = w  ? JSON.parse(w)  : {};
+    deadFlags  = d  ? JSON.parse(d)  : {};
+    cullLog    = l  ? JSON.parse(l)  : [];
+    bigFishRecord = b ? parseFloat(b) : 0;
+    sunMode    = s === '1';
+    if (te) { timerEnd = parseInt(te); if (timerEnd < Date.now()) timerEnd = null; }
+  } catch(e) { tags = JSON.parse(JSON.stringify(DEFAULT_TAGS)); weights = {}; deadFlags = {}; cullLog = []; }
+}
+
+/* ─── HELPERS ─── */
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function contrastText(hex) {
+  try { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return (r*299+g*587+b*114)/1000>145?'#000':'#fff'; }
+  catch(e) { return '#fff'; }
+}
+function effectiveWeight(tagId) {
+  const w = weights[tagId];
+  if (w == null) return null;
+  return deadFlags[tagId] ? Math.max(0, w - DEAD_PENALTY) : w;
+}
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+/* ─── GRID ─── */
+function buildGrid() {
+  const grid = document.getElementById('tag-grid');
+  grid.innerHTML = '';
+  tags.forEach(tag => {
+    const raw = weights[tag.id];
+    const hasFish = raw != null;
+    const isDead = !!deadFlags[tag.id];
+    const eff = effectiveWeight(tag.id);
+    const textColor = contrastText(tag.color);
+    const row = document.createElement('div');
+    row.className = 'tag-row' + (hasFish ? ' has-fish' : '');
+    row.id = 'row-' + tag.id;
+    row.style.setProperty('--tag-color', tag.color);
+    row.innerHTML = `
+      <div class="tag-swatch" style="background:${tag.color}">
+        <span class="tag-icon">🎣</span>
+        <span class="tag-name-label" style="color:${textColor}">${escHtml(tag.name)}</span>
+      </div>
+      <div class="tag-content">
+        <div class="weight-display">
+          <div class="weight-label">Weight${isDead ? ' <span class="dead-badge">DEAD</span>' : ''}</div>
+          <div class="weight-value ${hasFish ? '' : 'empty'}">
+            ${hasFish ? eff.toFixed(2) : '—'}
+            ${hasFish ? '<span class="weight-unit">lbs</span>' : ''}
+            ${hasFish && isDead ? `<span class="weight-unit" style="color:var(--danger);font-size:10px"> (−${DEAD_PENALTY.toFixed(2)})</span>` : ''}
+          </div>
+        </div>
+        <div class="tag-actions">
+          <button class="btn-enter" onclick="openWeightModal('${tag.id}')">${hasFish ? 'Edit' : 'Enter'}</button>
+          ${hasFish ? `<div class="btn-sm-row">
+            <button class="btn-sm ${isDead ? 'dead-on' : ''}" onclick="toggleDead('${tag.id}')">${isDead ? '💀 Dead' : 'Dead?'}</button>
+            <button class="btn-sm" onclick="clearTag('${tag.id}')">Clear</button>
+          </div>` : ''}
+        </div>
+      </div>`;
+    grid.appendChild(row);
+  });
+}
+
+/* ─── SCOREBOARD ─── */
+function updateScoreboard() {
+  const tagIds = tags.map(t => t.id);
+  const entries = tagIds.map(id => ({ id, eff: effectiveWeight(id) })).filter(e => e.eff != null);
+  const count = entries.length;
+  const total = entries.reduce((a,e) => a + e.eff, 0);
+  const rawVals = Object.entries(weights).filter(([,v]) => v != null).map(([,v]) => v);
+  const currentBig = rawVals.length ? Math.max(...rawVals) : 0;
+
+  document.getElementById('fish-count').textContent = count;
+  document.getElementById('total-weight').textContent = total.toFixed(2);
+  document.getElementById('big-fish').textContent = currentBig > 0 ? currentBig.toFixed(2) : '—';
+
+  if (count >= LIMIT) {
+    const top5 = entries.map(e=>e.eff).sort((a,b)=>a-b).slice(-5);
+    document.getElementById('limit-weight').textContent = top5.reduce((a,b)=>a+b,0).toFixed(2);
+  } else {
+    document.getElementById('limit-weight').textContent = '—';
+  }
+  updateCullTip(entries);
+  updateLog();
+}
+
+function updateCullTip(entries) {
+  const tip = document.getElementById('cull-tip');
+  if (!entries) {
+    const tagIds = tags.map(t=>t.id);
+    entries = tagIds.map(id=>({id,eff:effectiveWeight(id)})).filter(e=>e.eff!=null);
+  }
+  if (entries.length < LIMIT) { tip.style.display='none'; return; }
+  const sorted = [...entries].sort((a,b)=>a.eff-b.eff);
+  const light = sorted[0];
+  const lightTag = tags.find(t=>t.id===light.id);
+  if (!lightTag) return;
+  tip.style.display = 'block';
+  document.getElementById('cull-tip-text').innerHTML =
+    `Cull: <span style="color:${lightTag.color}">${escHtml(lightTag.name)}</span> @ ${light.eff.toFixed(2)} lbs — replace with anything heavier`;
+}
+
+function updateLog() {
+  const sec = document.getElementById('log-section');
+  const list = document.getElementById('log-list');
+  if (!cullLog.length) { sec.style.display='none'; return; }
+  sec.style.display = 'block';
+  list.innerHTML = '';
+  [...cullLog].reverse().slice(0,8).forEach(entry => {
+    const tag = tags.find(t=>t.id===entry.tagId) || { name: entry.tagName || '?', color: '#888' };
+    const gain = entry.newW - entry.oldW;
+    const el = document.createElement('div');
+    el.className = 'log-entry';
+    el.innerHTML = `
+      <div class="log-dot" style="background:${tag.color}"></div>
+      <div class="log-text">
+        <span style="color:var(--text);font-weight:600">${escHtml(tag.name)}</span>
+        ${entry.oldW.toFixed(2)} → ${entry.newW.toFixed(2)} lbs
+        <span class="log-gain">+${gain.toFixed(2)}</span>
+      </div>
+      <div class="log-time">${entry.time}</div>`;
+    list.appendChild(el);
+  });
+}
+
+/* ─── WEIGHT MODAL ─── */
+function openWeightModal(tagId) {
+  activeTag = tagId;
+  modalDead = !!deadFlags[tagId];
+  numBuffer = weights[tagId] != null ? String(weights[tagId]) : '';
+  const tag = tags.find(t=>t.id===tagId);
+  document.getElementById('modal-tag-name').textContent = tag.name + ' Tag';
+  document.getElementById('modal-swatch').style.background = tag.color;
+  updateDeadToggleUI();
+  updateNumpadDisplay();
+  document.getElementById('modal-weight').classList.add('open');
+}
+function closeWeightModal() {
+  document.getElementById('modal-weight').classList.remove('open');
+  activeTag = null; numBuffer = ''; modalDead = false;
+}
+function toggleDeadInModal() {
+  modalDead = !modalDead;
+  updateDeadToggleUI();
+}
+function updateDeadToggleUI() {
+  const pill = document.getElementById('dead-toggle-pill');
+  pill.className = 'toggle-pill' + (modalDead ? ' on' : '');
+}
+function numInput(char) {
+  if (char==='.' && numBuffer.includes('.')) return;
+  if (numBuffer.length >= 6) return;
+  const parts = numBuffer.split('.');
+  if (parts[1] !== undefined && parts[1].length >= 2) return;
+  numBuffer += char; updateNumpadDisplay();
+}
+function numBackspace() { numBuffer = numBuffer.slice(0,-1); updateNumpadDisplay(); }
+function updateNumpadDisplay() {
+  const el = document.getElementById('numpad-display');
+  el.innerHTML = numBuffer ? numBuffer+' lbs' : '<span class="placeholder">0.00 lbs</span>';
+}
+function confirmWeight() {
+  if (!numBuffer || !activeTag) { closeWeightModal(); return; }
+  const val = parseFloat(numBuffer);
+  if (isNaN(val) || val <= 0) { closeWeightModal(); return; }
+
+  const prevRaw = weights[activeTag];
+  const prevEff = effectiveWeight(activeTag);
+  const wasFull = Object.values(weights).filter(v=>v!=null).length >= LIMIT;
+
+  // Check if this is a cull (replacing existing fish in a full limit)
+  if (prevRaw != null && wasFull && prevEff != null) {
+    const tag = tags.find(t=>t.id===activeTag);
+    cullLog.push({ tagId: activeTag, tagName: tag.name, oldW: prevEff, newW: val, time: formatTime(Date.now()) });
+  }
+
+  weights[activeTag] = val;
+  deadFlags[activeTag] = modalDead;
+
+  // Big fish alert
+  const rawVals = Object.values(weights).filter(v=>v!=null);
+  if (rawVals.length && val > bigFishRecord) {
+    bigFishRecord = val;
+    showBigFishAlert();
+  }
+
+  saveAll(); buildGrid(); updateScoreboard();
+  setTimeout(() => {
+    const row = document.getElementById('row-'+activeTag);
+    if (row) { row.classList.add('ripple'); setTimeout(()=>row.classList.remove('ripple'),450); }
+  }, 50);
+  closeWeightModal();
+}
+
+function showBigFishAlert() {
+  const el = document.getElementById('bigfish-alert');
+  el.classList.add('show');
+  if (navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function toggleDead(tagId) {
+  deadFlags[tagId] = !deadFlags[tagId];
+  saveAll(); buildGrid(); updateScoreboard();
+}
+
+function clearTag(tagId) {
+  delete weights[tagId];
+  delete deadFlags[tagId];
+  saveAll(); buildGrid(); updateScoreboard();
+}
+function resetAll() {
+  if (!confirm('Clear all weights and cull history?')) return;
+  weights = {}; deadFlags = {}; cullLog = {}; cullLog = []; bigFishRecord = 0;
+  saveAll(); buildGrid(); updateScoreboard();
+}
+
+/* ─── SETTINGS ─── */
+function openSettings() {
+  const list = document.getElementById('settings-list');
+  list.innerHTML = '';
+  tags.forEach((tag, i) => {
+    const row = document.createElement('div');
+    row.className = 'tag-edit-row';
+    row.innerHTML = `
+      <div class="color-preview" id="cp-${i}" style="background:${tag.color}">
+        <input type="color" value="${tag.color}" id="ci-${i}" oninput="document.getElementById('cp-${i}').style.background=this.value">
+      </div>
+      <input class="tag-name-input" type="text" value="${escHtml(tag.name)}" id="ni-${i}" maxlength="10" placeholder="Tag name" autocomplete="off" autocorrect="off" spellcheck="false">`;
+    list.appendChild(row);
+  });
+  document.getElementById('modal-settings').classList.add('open');
+}
+function closeSettings() { document.getElementById('modal-settings').classList.remove('open'); }
+function saveSettings() {
+  tags.forEach((tag, i) => {
+    const nameEl = document.getElementById('ni-'+i);
+    const colorEl = document.getElementById('ci-'+i);
+    if (nameEl && nameEl.value.trim()) tag.name = nameEl.value.trim();
+    if (colorEl) tag.color = colorEl.value;
+  });
+  saveAll(); buildGrid(); updateScoreboard(); closeSettings();
+}
+
+/* ─── ALARM / TIMER ─── */
+function openTimerModal() {
+  buildPresets();
+  updateAlarmStatus();
+  document.getElementById('modal-timer').classList.add('open');
+}
+function closeTimerModal() { document.getElementById('modal-timer').classList.remove('open'); }
+
+function buildPresets() {
+  const container = document.getElementById('alarm-presets');
+  container.innerHTML = '';
+  const now = new Date();
+  [1, 2, 3, 4, 6, 8].forEach(hrs => {
+    const t = new Date(now.getTime() + hrs * 3600000);
+    const hh = t.getHours(), mm = t.getMinutes();
+    const label12 = fmtTime12(hh, mm);
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.innerHTML = `${label12}<span class="preset-label">+${hrs}h</span>`;
+    btn.onclick = () => {
+      document.getElementById('alarm-time-input').value =
+        String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+      updateAlarmStatus();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function updateAlarmStatus() {
+  const val = document.getElementById('alarm-time-input').value;
+  const el = document.getElementById('alarm-status');
+  if (!val) { el.innerHTML = ''; return; }
+  const [h, m] = val.split(':').map(Number);
+  const now = new Date();
+  const alarm = new Date(now);
+  alarm.setHours(h, m, 0, 0);
+  if (alarm <= now) alarm.setDate(alarm.getDate() + 1);
+  const diffMs = alarm - now;
+  const diffMin = Math.round(diffMs / 60000);
+  const diffH = Math.floor(diffMin / 60);
+  const diffM = diffMin % 60;
+  const timeStr = diffH > 0 ? `${diffH}h ${diffM}m` : `${diffM}m`;
+  el.innerHTML = `Alarm at <span class="hi">${fmtTime12(h, m)}</span> — ${timeStr} from now`;
+}
+
+function setAlarm() {
+  const val = document.getElementById('alarm-time-input').value;
+  if (!val) return;
+  const [h, m] = val.split(':').map(Number);
+  const now = new Date();
+  const alarm = new Date(now);
+  alarm.setHours(h, m, 0, 0);
+  if (alarm <= now) alarm.setDate(alarm.getDate() + 1);
+  timerEnd = alarm.getTime();
+  saveAll();
+  document.getElementById('btn-clear-alarm').style.display = '';
+  document.getElementById('weigh-in-label').style.display = '';
+  document.getElementById('weigh-in-time').textContent = fmtTime12(h, m);
+  closeTimerModal();
+  runTimer();
+}
+
+function clearAlarm() {
+  timerEnd = null;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  document.getElementById('timer-display').textContent = '--:--';
+  document.getElementById('timer-display').className = 'timer-display';
+  document.getElementById('btn-clear-alarm').style.display = 'none';
+  document.getElementById('weigh-in-label').style.display = 'none';
+  localStorage.removeItem('ct_timerEnd');
+  // close modal if open
+  document.getElementById('modal-timer').classList.remove('open');
+}
+
+function runTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(tickTimer, 1000);
+  tickTimer();
+}
+
+function tickTimer() {
+  if (!timerEnd) return;
+  const disp = document.getElementById('timer-display');
+  const rem = timerEnd - Date.now();
+  if (rem <= 0) {
+    disp.textContent = 'GO IN!';
+    disp.className = 'timer-display danger';
+    if (navigator.vibrate) navigator.vibrate([400,200,400,200,400,200,800]);
+    clearInterval(timerInterval); timerInterval = null;
+    return;
+  }
+  disp.textContent = fmtCountdown(rem);
+  disp.className = 'timer-display' + (rem < 600000 ? (rem < 300000 ? ' danger' : ' warn') : '');
+}
+
+function fmtCountdown(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function fmtTime12(h, m) {
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+/* ─── SHARE ─── */
+function shareResults() {
+  const entries = tags.map(t => ({ tag: t, eff: effectiveWeight(t.id) })).filter(e => e.eff != null);
+  const total = entries.reduce((a,e) => a+e.eff, 0);
+  const sorted = entries.map(e=>e.eff).sort((a,b)=>b-a);
+  const limit = sorted.slice(0,5).reduce((a,b)=>a+b,0);
+  const rawVals = Object.values(weights).filter(v=>v!=null);
+  const big = rawVals.length ? Math.max(...rawVals) : 0;
+  const lines = [
+    '🎣 TOURNAMENT RESULTS',
+    '─────────────────────',
+    ...entries.sort((a,b)=>b.eff-a.eff).map(e =>
+      `${deadFlags[e.tag.id] ? '💀 ' : ''}${e.tag.name}: ${e.eff.toFixed(2)} lbs`
+    ),
+    '─────────────────────',
+    `Fish: ${entries.length}  |  Total: ${total.toFixed(2)} lbs`,
+    entries.length >= 5 ? `Limit (top 5): ${limit.toFixed(2)} lbs` : '',
+    big > 0 ? `Big Fish: ${big.toFixed(2)} lbs` : '',
+    '',
+    `📱 via Cull Tracker`
+  ].filter(l => l !== undefined);
+
+  const text = lines.join('\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => alert('Results copied to clipboard!')).catch(()=>fallbackCopy(text));
+  } else { fallbackCopy(text); }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); alert('Results copied!'); } catch(e) { alert(text); }
+  document.body.removeChild(ta);
+}
+
+/* ─── SUN MODE ─── */
+function toggleSun() {
+  sunMode = !sunMode;
+  document.body.classList.toggle('sun', sunMode);
+  document.getElementById('sun-btn').textContent = sunMode ? '🌙' : '☀️';
+  saveAll();
+}
+
+/* ─── INIT ─── */
+loadAll();
+if (sunMode) { document.body.classList.add('sun'); document.getElementById('sun-btn').textContent = '🌙'; }
+buildGrid();
+updateScoreboard();
+if (timerEnd && timerEnd > Date.now()) {
+  const d = new Date(timerEnd);
+  document.getElementById('btn-clear-alarm').style.display = '';
+  document.getElementById('weigh-in-label').style.display = '';
+  document.getElementById('weigh-in-time').textContent = fmtTime12(d.getHours(), d.getMinutes());
+  runTimer();
+}
+// Hide install banner if already running as installed PWA
+if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
+  const b = document.getElementById('static-install-banner');
+  if (b) b.style.display = 'none';
+}
+
+// ── SERVICE WORKER (inline via blob) ──────────────────────────────
+const swCode = `
+const CACHE = 'cull-tracker-v1';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html'])).catch(()=>{}));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => r)));
+});
+`;
+if ('serviceWorker' in navigator) {
+  try {
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  } catch(e) {}
+}
+
+// ── iOS INSTALL PROMPT ─────────────────────────────────────────────
+function isIos() { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function isInStandaloneMode() { return window.navigator.standalone === true; }
+function iosBannerDismissed() { try { return localStorage.getItem('ios_banner_dismissed') === '1'; } catch(e) { return false; } }
+
+if (isIos() && !isInStandaloneMode() && !iosBannerDismissed()) {
+  const banner = document.createElement('div');
+  banner.id = 'ios-install-banner';
+  banner.style.cssText = `
+    position:fixed; bottom:0; left:0; right:0; z-index:9999;
+    background:#172540; border-top:1px solid #1e3254;
+    padding:14px 16px 28px; display:flex; align-items:flex-start; gap:12px;
+    font-family:'Barlow',sans-serif; animation: slideUp 0.3s ease;
+  `;
+  banner.innerHTML = `
+    <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+    <div style="font-size:28px;line-height:1;flex-shrink:0">🎣</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:#e8f0fe;margin-bottom:4px">Add Cull Tracker to your Home Screen</div>
+      <div style="font-size:12px;color:#6b89b4;line-height:1.5">
+        Tap the <strong style="color:#00c2ff">Share button</strong> <span style="font-size:15px">⎋</span> at the bottom of Safari, then tap
+        <strong style="color:#00c2ff">"Add to Home Screen"</strong>
+      </div>
+    </div>
+    <button onclick="document.getElementById('ios-install-banner').remove();try{localStorage.setItem('ios_banner_dismissed','1')}catch(e){}"
+      style="background:none;border:none;color:#6b89b4;font-size:20px;cursor:pointer;padding:0;line-height:1;flex-shrink:0">✕</button>
+  `;
+  document.body.appendChild(banner);
+}
+</script>
+</body>
+</html>
